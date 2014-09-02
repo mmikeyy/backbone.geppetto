@@ -32,15 +32,36 @@
         OTHER: 'other'
     };
 
+    //based on http://stackoverflow.com/questions/3362471/how-can-i-call-a-javascript-constructor-using-call-or-apply
+
+    function applyToConstructor(constructor, argArray) {
+        var args = [constructor].concat(argArray);
+        var FactoryFunction = _.partial.apply(null, args);
+        return new FactoryFunction();
+    }
+
     var Resolver = function(context) {
         this._mappings = {};
         this._context = context;
         this.parent = undefined;
     };
     Resolver.prototype = {
-        _createAndSetupInstance: function(Clazz, wiring) {
-            var instance = new Clazz();
-            this.resolve(instance, wiring);
+        _createAndSetupInstance: function(config) {
+            var instance;
+            if (config.params) {
+                var params = _.map(config.params, function(param) {
+                    if (_.isFunction(param)) {
+                        param = param(this._context);
+                    }
+                    return param;
+                }, this);
+                instance = applyToConstructor(config.clazz, params);
+            } else {
+                instance = new config.clazz();
+            }
+            if (!instance.initialize) {
+                this.resolve(instance, config.wiring);
+            }
             return instance;
         },
 
@@ -50,14 +71,14 @@
                 var config = this._mappings[key];
                 if (!overrideRules && config.type === TYPES.SINGLETON) {
                     if (!config.object) {
-                        config.object = this._createAndSetupInstance(config.clazz, config.wiring);
+                        config.object = this._createAndSetupInstance(config);
                     }
                     output = config.object;
                 } else {
                     if (config.type === TYPES.VIEW) {
                         output = config.clazz;
                     } else if (config.clazz) {
-                        output = this._createAndSetupInstance(config.clazz, config.wiring);
+                        output = this._createAndSetupInstance(config);
                     }
                 }
             } else if (this.parent && this.parent.hasWiring(key)) {
@@ -69,21 +90,28 @@
         },
 
         _wrapConstructor: function(OriginalConstructor, wiring) {
+            if (OriginalConstructor.prototype.initialize) {
+                var context = this._context;
 
-            var context = this._context;
-
-            return OriginalConstructor.extend({
-                initialize: function() {
-                    context.resolver.resolve(this, wiring);
-                    OriginalConstructor.prototype.initialize.apply(this, arguments);
-                }
-            });
+                return OriginalConstructor.extend({
+                    initialize: function() {
+                        context.resolver.resolve(this, wiring);
+                        OriginalConstructor.prototype.initialize.apply(this, arguments);
+                    }
+                });
+            } else {
+                return OriginalConstructor;
+            }
         },
 
-        createChildResolver: function() {
-            var child = new Resolver(this._context);
-            child.parent = this;
-            return child;
+        _mapContextEvents: function(obj) {
+            _.each(obj.contextEvents, function(callback, eventName) {
+                if (_.isFunction(callback)) {
+                    this._context.listen(obj, eventName, callback);
+                } else if (_.isString(callback)) {
+                    this._context.listen(obj, eventName, obj[callback]);
+                }
+            }, this);
         },
 
         getObject: function(key) {
@@ -105,7 +133,7 @@
 
         wireClass: function(key, clazz, wiring) {
             this._mappings[key] = {
-                clazz: clazz,
+                clazz: this._wrapConstructor(clazz, wiring),
                 object: null,
                 type: TYPES.OTHER,
                 wiring: wiring
@@ -124,10 +152,8 @@
 
         wireSingleton: function(key, clazz, wiring) {
 
-            var constructor = (clazz.prototype.initialize ? this._wrapConstructor(clazz, wiring) : clazz);
-
             this._mappings[key] = {
-                clazz: constructor,
+                clazz: this._wrapConstructor(clazz, wiring),
                 object: null,
                 type: TYPES.SINGLETON,
                 wiring: wiring
@@ -148,6 +174,7 @@
                 }, this);
             }
             this.addPubSub(instance);
+            this._mapContextEvents(instance);
             return this;
         },
         addPubSub: function(instance) {
@@ -162,6 +189,16 @@
         releaseAll: function() {
             this._mappings = {};
             return this;
+        },
+        configure: function(key) {
+            var mapping = this._mappings[key];
+            if (typeof mapping === 'undefined') {
+                throw new Error(NO_MAPPING_FOUND + key);
+            }
+            if (!mapping.clazz || mapping.type === TYPES.VIEW) {
+                throw new Error("Cannot configure " + key + ": only possible for wirings of type singleton or class");
+            }
+            mapping.params = _.toArray(arguments).slice(1);
         }
     };
 
@@ -185,6 +222,7 @@
         } else if (!this.resolver) {
             this.resolver = new Resolver(this);
         }
+
         if (this.parentContext) {
             this.resolver.parent = this.parentContext.resolver;
         }
@@ -232,15 +270,6 @@
         }
 
         context.resolver.resolve(view);
-
-        // map context events
-        _.each(view.contextEvents, function(callback, eventName) {
-            if (_.isFunction(callback)) {
-                context.listen(view, eventName, callback);
-            } else if (_.isString(callback)) {
-                context.listen(view, eventName, view[callback]);
-            }
-        });
 
         var returnValue;
 
@@ -322,18 +351,12 @@
         }
     };
 
-    Geppetto.Context.prototype.dispatchToParents = function dispatchToParents(eventName, eventData) {
-        if (this.parentContext && !(eventData && eventData.stopPropagation)) {
-            this.parentContext.vent.trigger(eventName, eventData);
-            if (this.parentContext) {
-                this.parentContext.dispatchToParents(eventName, eventData);
-            }
-        }
-    };
-
     Geppetto.Context.prototype.dispatchGlobally = function dispatchGlobally(eventName, eventData) {
 
         _.each(contexts, function(context) {
+            if (!context) {
+                return true;
+            }
             context.vent.trigger(eventName, eventData);
         });
     };
