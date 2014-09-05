@@ -8,7 +8,7 @@ define([
     var expect = chai.expect;
     describe("Backbone.Geppetto", function() {
 
-        describe("when loading Geppettoooo", function() {
+        describe("when loading Geppetto", function() {
 
             it("should be defined as an AMD module", function() {
                 expect(Geppetto).not.to.be.null;
@@ -56,13 +56,6 @@ define([
                     context[methodName].call(context);
                     expect(stub).to.have.been.calledOnce;
                 });
-            });
-            it("should use the optionally provided resolver", function(){
-                var child = new Geppetto.Context({
-                    resolver: context.resolver
-                });
-                expect(child.resolver).to.equal(context.resolver);
-                child.destroy();
             });
         });
 
@@ -671,7 +664,7 @@ define([
             });
         });
 
-        describe("when a context has a parent contexttttt", function() {
+        describe("when a context has a parent context", function() {
 
             var parentView;
             var parentContext;
@@ -730,7 +723,6 @@ define([
 
             it("should have an resolver which is a child resolver of the parent", function() {
                 expect(childContext.resolver.parent).to.equal(parentContext.resolver);
-                expect(childContext.resolver).not.to.equal(parentContext.resolver);
             });
 
         });
@@ -801,10 +793,10 @@ define([
 
                 childContext.dispatchToParents('foo');
 
-                expect(spyC).callCount(0);
-                expect(spyP).callCount(1);
-                expect(spyGP).callCount(1);
-                expect(spyGGP).callCount(1);
+                expect(spyC.callCount).to.equal(0);
+                expect(spyP.callCount).to.equal(1);
+                expect(spyGP.callCount).to.equal(1);
+                expect(spyGGP.callCount).to.equal(1);
 
             });
             it("should pass data payload all ancestors", function () {
@@ -862,7 +854,7 @@ define([
                 parentView.listen(          parentView,             "foo", spyP);
                 childView.listen(           childView,              "foo", spyC);
 
-                payload = {"foo": 1};
+                var payload = {"foo": 1};
 
                 childContext.dispatchToParents('foo', payload);
 
@@ -874,10 +866,10 @@ define([
 
             });
 
-            it("should stop bubbling when payload extended with {stopPropagation:true}", function () {
+            it("should stop bubbling when payload extended with {propagationDisabled:true}", function () {
 
-                stopBubbling = function(object) {
-                    object.stopPropagation = true;
+                var stopBubbling = function(object) {
+                    object.propagationDisabled = true;
                 };
 
                 var spyGGP = sinon.spy();
@@ -892,15 +884,15 @@ define([
 
                 childContext.dispatchToParents("foo", {"any": "object"});
 
-                expect(spyC).callCount(0);
-                expect(spyP).callCount(1);
-                expect(spyGP).callCount(1);
-                expect(spyGGP).callCount(0);
+                expect(spyC.callCount).to.equal(0);
+                expect(spyP.callCount).to.equal(1);
+                expect(spyGP.callCount).to.equal(1);
+                expect(spyGGP.callCount).to.equal(0);
 
             });
             it("should not crash if an ancestor destroys its own ancestor while bubbling", function() {
 
-                destroyGGP = function() {
+                var destroyGGP = function() {
                     if (greatGrandParentView.close) {
                         greatGrandParentView.close();
                     } else if (greatGrandParentView.destroy){
@@ -920,10 +912,10 @@ define([
 
                 childContext.dispatchToParents("foo");
 
-                expect(spyC).callCount(0);
-                expect(spyP).callCount(1);
-                expect(spyGP).callCount(1);
-                expect(spyGGP).callCount(0);
+                expect(spyC.callCount).to.equal(0);
+                expect(spyP.callCount).to.equal(1);
+                expect(spyGP.callCount).to.equal(1);
+                expect(spyGGP.callCount).to.equal(0);
             });
 
 
@@ -1012,35 +1004,6 @@ define([
                 expect(spy3.callCount).to.equal(1);
             });
 
-            it("should skip any context that have been destroyed when looping through list of all contexts to trigger event on each", function() {
-                var spy1 = sinon.spy();
-                var spy2 = sinon.spy();
-                var spy3 = sinon.spy();
-
-                var spyDispatchGlobally = sinon.spy(context1, 'dispatchGlobally');
-
-                context1.listen(view1, "foo", function(){
-                    context2.destroy();
-                });
-
-                context1.listen(view1, "foo", spy1);
-                context2.listen(view2, "foo", spy2);
-                context3.listen(view3, "foo", spy3);
-
-                expect(spy1.callCount).to.equal(0);
-                expect(spy2.callCount).to.equal(0);
-                expect(spy3.callCount).to.equal(0);
-
-                context1.dispatchGlobally('foo');
-
-                expect(spy1.callCount).to.equal(1);
-                expect(spy2.callCount).to.equal(0);
-                expect(spy3.callCount).to.equal(1);
-
-                expect(spyDispatchGlobally.threw()).to.equal(false);
-
-            });
-
         });
 
         describe("when debug mode is enabled", function() {
@@ -1049,7 +1012,6 @@ define([
             var context;
 
             beforeEach(function() {
-                
                 var viewDef = Backbone.View.extend();
                 view = new viewDef();
                 context = Geppetto.bindContext({
