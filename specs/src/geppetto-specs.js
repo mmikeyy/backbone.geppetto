@@ -794,10 +794,10 @@ define([
                 var spyP = sinon.spy();
                 var spyC = sinon.spy();
 
-                greatGrandParentView.listen(greatGrandParentView, "foo", spyGGP);
-                grandParentView.listen(grandParentView, "foo", spyGP);
-                parentView.listen(parentView, "foo", spyP);
-                childView.listen(childView, "foo", spyC);
+                greatGrandParentView.listen(greatGrandParentView,   "foo", spyGGP);
+                grandParentView.listen(     grandParentView,        "foo", spyGP);
+                parentView.listen(          parentView,             "foo", spyP);
+                childView.listen(           childView,              "foo", spyC);
 
                 childContext.dispatchToParents('foo');
 
@@ -824,10 +824,10 @@ define([
                 });
                 var spyC = sinon.spy();
 
-                greatGrandParentView.listen(    greatGrandParentView,   "foo", spyGGP);
-                grandParentView.listen(         grandParentView,        "foo", spyGP);
-                parentView.listen(              parentView,             "foo", spyP);
-                childView.listen(               childView,              "foo", spyC);
+                greatGrandParentView.listen(greatGrandParentView,   "foo", spyGGP);
+                grandParentView.listen(     grandParentView,        "foo", spyGP);
+                parentView.listen(          parentView,             "foo", spyP);
+                childView.listen(           childView,              "foo", spyC);
 
                 childContext.dispatchToParents('foo', {"foo": "bar"});
 
@@ -857,10 +857,10 @@ define([
                 });
                 var spyC = sinon.spy();
 
-                greatGrandParentView.listen(greatGrandParentView, "foo", spyGGP);
-                grandParentView.listen(grandParentView, "foo", spyGP);
-                parentView.listen(parentView, "foo", spyP);
-                childView.listen(childView, "foo", spyC);
+                greatGrandParentView.listen(greatGrandParentView,   "foo", spyGGP);
+                grandParentView.listen(     grandParentView,        "foo", spyGP);
+                parentView.listen(          parentView,             "foo", spyP);
+                childView.listen(           childView,              "foo", spyC);
 
                 payload = {"foo": 1};
 
@@ -885,10 +885,10 @@ define([
                 var spyP = sinon.spy();
                 var spyC = sinon.spy();
 
-                greatGrandParentView.listen(greatGrandParentView, "foo", spyGGP);
-                grandParentView.listen(grandParentView, "foo", spyGP);
-                parentView.listen(parentView, "foo", spyP);
-                childView.listen(childView, "foo", spyC);
+                greatGrandParentView.listen(greatGrandParentView,   "foo", spyGGP);
+                grandParentView.listen(     grandParentView,        "foo", spyGP);
+                parentView.listen(          parentView,             "foo", spyP);
+                childView.listen(           childView,              "foo", spyC);
 
                 childContext.dispatchToParents("foo", {"any": "object"});
 
@@ -908,15 +908,15 @@ define([
                     }
                 };
 
-                var spyGGP = sinon.spy();
-                var spyGP = sinon.spy();
-                var spyP = sinon.spy(destroyGGP);
-                var spyC = sinon.spy();
+                var spyGGP =    sinon.spy();
+                var spyGP =     sinon.spy();
+                var spyP =      sinon.spy(destroyGGP);
+                var spyC =      sinon.spy();
 
-                greatGrandParentView.listen(greatGrandParentView, "foo", spyGGP);
-                grandParentView.listen(grandParentView, "foo", spyGP);
-                parentView.listen(parentView, "foo", spyP);
-                childView.listen(childView, "foo", spyC);
+                greatGrandParentView.listen(greatGrandParentView,   "foo", spyGGP);
+                grandParentView.listen(     grandParentView,        "foo", spyGP);
+                parentView.listen(          parentView,             "foo", spyP);
+                childView.listen(           childView,              "foo", spyC);
 
                 childContext.dispatchToParents("foo");
 
