@@ -693,35 +693,29 @@ define([
 
                 expect(function() {
                     childContext.dispatchToParent("foo", 1);
-                }).to.
-                    throw (errMsg);
+                }).to.throw (errMsg);
 
                 expect(function() {
                     childContext.dispatchToParent("foo", "a string");
-                }).to.
-                    throw (errMsg);
+                }).to.throw (errMsg);
 
                 expect(function() {
                     childContext.dispatchToParent("foo", null);
-                }).to.
-                    throw (errMsg);
+                }).to.throw (errMsg);
 
                 expect(function() {
                     childContext.dispatchToParent("foo", true);
-                }).to.
-                    throw (errMsg);
+                }).to.throw (errMsg);
 
                 // accept optional payload
 
                 expect(function() {
                     childContext.dispatchToParent("foo", undefined);
-                }).not.to.
-                    throw (/.*/);
+                }).not.to.throw ();
 
                 expect(function() {
                     childContext.dispatchToParent("foo", {});
-                }).not.to.
-                    throw (/.*/);
+                }).not.to.throw ();
 
             });
 
